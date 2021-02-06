@@ -1,0 +1,64 @@
+local BloodEffects = {}
+
+-- || Services + Variables
+local ReplicatedStorage = game.ReplicatedStorage
+local DebrisService = game:GetService("Debris")
+local TweenService = game:GetService("TweenService")
+
+local Rex = require(ReplicatedStorage.Modules.Rex)
+local RayService = Rex:GetModule("RayService");
+
+BloodEffects.CreateSFX = function(EnemyRoot)
+	local CombatSFX = ReplicatedStorage.Assets.Sound.Combat:Clone()
+	CombatSFX:Play()
+	CombatSFX.Parent = EnemyRoot
+	Debris:AddItem(CombatSFX,CombatSFX.TimeLength)
+end
+
+BloodEffects.CreateEffect = function(EnemyRoot)
+	
+	for i = 1, 2 do
+		local Droplets = ReplicatedStorage.Assets.Effects.Combat.Droplets:Clone()
+		Droplets.Position = EnemyRoot.Position + Vector3.new(math.random(-1,1), 0,math.random(-1,1))
+		Droplets.CanCollide = true;
+		Droplets.Transparency = 1;
+		Droplets.Parent = game.Workspace.Visuals
+		DebrisService:AddItem(Droplets, 3)
+
+		local BodyVelocity = Instance.new("BodyVelocity")
+		BodyVelocity.Velocity = Vector3.new(math.random(-20,20),math.random(10,20),math.random(-20,20))
+		BodyVelocity.MaxForce = Vector3.new(100000,100000,100000)
+		BodyVelocity.Parent = Droplets
+		DebrisService:AddItem(BodyVelocity, .1)
+
+		local Connection
+		Connection = Droplets.Touched:Connect(function(Hit)
+			if not Hit:IsDescendantOf(game.Workspace.Entities) and not Hit:IsDescendantOf(game.Workspace.Visuals) then
+				Connection = Connection and Connection:Disconnect();
+				local LandingPoint = RayService:Cast(Droplets.Position, Droplets.Position - Vector3.new(0,50,0), {game.Workspace.Visuals, game.Workspace.Entities}, Enum.RaycastFilterType.Blacklist)
+				if LandingPoint then
+					local Cylinder = Instance.new("Part")
+					Cylinder.Shape = Enum.PartType.Cylinder
+					Cylinder.Size = Vector3.new(0,0,0)
+					Cylinder.Anchored = true
+					Cylinder.CanCollide = false
+					Cylinder.Color = Color3.fromRGB(77, 0, 1)
+					Cylinder.Material = Enum.Material.Glass
+					Cylinder.CFrame = CFrame.new(LandingPoint.Position) * CFrame.Angles(0,0,math.rad(90))
+					Cylinder.Parent = game.Workspace.Visuals
+					DebrisService:AddItem(Cylinder, 2)
+
+					local Tween = TweenService:Create(Cylinder, TweenInfo.new(0.7, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0), {Size = Vector3.new(0.05, 1.4, 3.248)})
+					Tween:Play()
+					Tween:Destroy()
+
+					local Invisible = TweenService:Create(Cylinder, TweenInfo.new(0.7, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 1), {Transparency = 1})
+					Invisible:Play()
+					Invisible:Destroy()
+				end
+			end
+		end)
+	end
+end
+
+return BloodEffects
