@@ -1,0 +1,37 @@
+-- || Services
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DebrisServices = game:GetService("Debris")
+local TweenService = game:GetService("TweenService")
+
+-- || Variables
+local Player = game.Players.LocalPlayer
+local Mouse = Player:GetMouse()
+local Remote = ReplicatedStorage.Events.Combat.Combat
+
+-- || Modules
+local combatFolder = ReplicatedStorage.Modules:WaitForChild("Combat")
+local Blood = require(combatFolder.BloodEffects)
+local Insert = require(combatFolder.InsertModule)
+local Sound = require(combatFolder.Sound)
+
+-- || Detections
+local CombatTable = {}
+local LastClicks = os.clock()
+local Time = 0.3
+
+UserInputService.InputBegan:Connect(function(Input,Processed)
+	if Processed then return end
+	if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+		Remote:FireServer()
+	end
+end)
+
+Remote.OnClientEvent:Connect(function(EnemyCharacter, RootofEnemy)
+	local Character = Player.Character
+	if (Character.HumanoidRootPart.Position - RootofEnemy.Position).Magnitude < 30 then
+		Blood.CreateEffect(RootofEnemy)
+		Insert.CreateFX(RootofEnemy)
+		Sound.CreateSFX(RootofEnemy)
+	end
+end)
