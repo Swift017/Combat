@@ -1,0 +1,63 @@
+-- || Services
+local ReplicatedStorage = game.ReplicatedStorage
+
+-- || Variables
+local Combat = ReplicatedStorage.Events.Combat.Combat
+local Debounce = false
+local CombatCombo = 1
+
+-- || Modules
+local Raycast = require(script.Raycast)
+
+-- || Code
+Combat.OnServerEvent:Connect(function(Player)
+	if Debounce == true then return end
+	
+	local Character = Player.Character
+	local Animator = Character:FindFirstChild("Humanoid"):FindFirstChild("Animator")
+	
+	-- || Animations
+	local Animations = ReplicatedStorage.Animations.Combat
+	local First = Animator:LoadAnimation(Animations.First)
+	local Second = Animator:LoadAnimation(Animations.Second)
+	local Third = Animator:LoadAnimation(Animations.Third)
+	local Fourth = Animator:LoadAnimation(Animations.Fourth)
+	local Fifth = Animator:LoadAnimation(Animations.Fifth)
+	
+	-- || Doing Damage
+	if CombatCombo == 1 then
+		First:Play()
+		First:AdjustSpeed(1.5)
+		Raycast.StartRaycastCombat(Character["RightHand"], {Character}, 4, "First")
+		wait(.1)
+		CombatCombo = CombatCombo + 1
+	elseif CombatCombo == 2 then
+		Second:Play()
+		Second:AdjustSpeed(1.5)
+		CombatCombo = CombatCombo + 1
+		wait(.1)
+		Raycast.StartRaycastCombat(Character["LeftHand"], {Character}, 4, "Second")
+	elseif CombatCombo == 3 then
+		Third:Play()
+		Third:AdjustSpeed(1.5)
+		CombatCombo = CombatCombo + 1
+		wait(.1)
+		Raycast.StartRaycastCombat(Character["RightFoot"], {Character}, 4, "Third")
+	elseif CombatCombo == 4 then
+		Fourth:Play()
+		Fourth:AdjustSpeed(1.5)
+		CombatCombo = CombatCombo + 1
+		wait(.1)
+		Raycast.StartRaycastCombat(Character["RightHand"], {Character}, 4, "Fourth")
+	elseif CombatCombo == 5 then
+		Fifth:Play()
+		Fifth:AdjustSpeed(1.5)
+		CombatCombo = 1
+		wait(.1)
+		Raycast.StartRaycastCombat(Character["LeftHand"], {Character}, 4, "Fifth")
+	end
+	
+	Debounce = true
+	wait(1)
+	Debounce = false
+end)
