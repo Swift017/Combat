@@ -1,0 +1,44 @@
+local Raycast = {}
+
+local EnemyRoot
+
+-- || Variables
+local DebrisService = game:GetService("Debris")
+local ReplicatedStorage = game.ReplicatedStorage
+local Remote = ReplicatedStorage.Events.Combat.Combat
+local RayCastModule = require(ReplicatedStorage.Modules.PublicRaycast)
+
+local function Knockback(EnemyRoot)
+	-- || Knockback
+	local Knockback = Instance.new("BodyVelocity")
+	DebrisService:AddItem(Knockback,.1)
+	for i = 1,7 do
+		Knockback.Velocity = EnemyRoot.CFrame.LookVector * (20-i)
+	end
+	Knockback.MaxForce = Vector3.new(100000,100000,100000)
+	Knockback.Parent = EnemyRoot
+end
+
+Raycast.StartRaycastCombat = function(Limb, IgnoreParams, Damage, Length)
+
+	-- || Raycast
+	local newHitbox = RayCastModule:Initialize(Limb, IgnoreParams)
+	newHitbox:SetPoints(Limb, {Vector3.new(0, -0.15, -0)})
+	newHitbox:HitStart()
+	newHitbox.OnHit:Connect(function(hit,humanoid)
+		if hit.Parent.Parent ~= game.Workspace.Entities then return end
+		if hit.Parent:FindFirstChild("Humanoid")then
+			local enemy = hit.Parent:FindFirstChild("Humanoid")
+			EnemyRoot = hit.Parent:FindFirstChild("HumanoidRootPart")
+			newHitbox:HitStop()
+			Remote:FireAllClients(hit.Parent, EnemyRoot)
+			enemy:TakeDamage(Damage)
+			if Length == "Fifth" then
+				Knockback(EnemyRoot)
+			end
+		end -- end of the then for hit.Parent
+	end) -- End of function for first hitbox
+	EnemyRoot = nil
+end
+
+return Raycast
